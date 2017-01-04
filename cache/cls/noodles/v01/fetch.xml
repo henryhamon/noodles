@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-32) 2015.2.1 (Build 705U)" ts="2017-01-04 15:53:09">
+<Class name="noodles.v01.fetch">
+<Super>%RegisteredObject</Super>
+<TimeChanged>64287,51903.625749</TimeChanged>
+<TimeCreated>64285,33636.222919</TimeCreated>
+
+<Parameter name="Server">
+<Type>%String</Type>
+</Parameter>
+
+<Parameter name="Port">
+<Type>%String</Type>
+</Parameter>
+
+<Parameter name="ContentType">
+<Type>%String</Type>
+<Default>application/json</Default>
+</Parameter>
+
+<Parameter name="Username">
+<Type>%String</Type>
+</Parameter>
+
+<Parameter name="Password">
+<Type>%String</Type>
+</Parameter>
+
+<Parameter name="Header">
+<Type>%Boolean</Type>
+<Default>0</Default>
+</Parameter>
+
+<Property name="data">
+<Type>%ZEN.proxyObject</Type>
+</Property>
+
+<Property name="header">
+<Type>%ZEN.proxyObject</Type>
+</Property>
+
+<Property name="Params">
+<Type>%ArrayOfDataTypes</Type>
+</Property>
+
+<Property name="Url">
+<Type>%String</Type>
+<Private>1</Private>
+</Property>
+
+<Property name="http">
+<Type>%Net.HttpRequest</Type>
+<Internal>1</Internal>
+</Property>
+
+<Method name="IsConfigured">
+<ReturnType>%Boolean</ReturnType>
+<Implementation><![CDATA[	Quit ..#Server'="" && ..Url'=""
+]]></Implementation>
+</Method>
+
+<Method name="%OnNew">
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<ServerOnly>1</ServerOnly>
+<Implementation><![CDATA[
+	Set ..http = ##class(%Net.HttpRequest).%New()
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="Get">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..Execute("get")
+]]></Implementation>
+</Method>
+
+<Method name="Delete">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..Execute("delete")
+]]></Implementation>
+</Method>
+
+<Method name="Put">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..Execute("put")
+]]></Implementation>
+</Method>
+
+<Method name="Post">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..Execute("post")
+]]></Implementation>
+</Method>
+
+<Method name="Request">
+<FormalSpec>pURL:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		Set ..Url = pURL
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="Action">
+<FormalSpec>pURL:%String,*tSC:%Status</FormalSpec>
+<ReturnType>noodles.v01.fetch</ReturnType>
+<Implementation><![CDATA[	Quit ..Request(pURL, .tSC)
+]]></Implementation>
+</Method>
+
+<Method name="GetCredentials">
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		/* 
+		For ensemble
+		If ..#Credential '= "" {
+    		Set credencial = ##class(Ens.Config.Credentials).%OpenId(..#Credential,,.tSC)
+    		Throw:$$$ISERR(tSC)
+    		
+    		Set uncoded = credencial.Username_":"_ credencial.Password
+			Set encoded=##class(%SYSTEM.Encryption).Base64Encode(uncoded)
+			
+			$$$THROWONERROR(tSC, ..http.SetHeader("Authorization","Basic "_encoded))
+		
+    	}
+    	*/
+    	If ((..#Username '= "") && (..#Password'="")) {
+    		Set uncoded = ..#Username_":"_ ..#Password
+			Set encoded=##class(%SYSTEM.Encryption).Base64Encode(uncoded)
+			
+			$$$THROWONERROR(tSC, ..http.SetHeader("Authorization","Basic "_encoded))
+		
+    	}
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="Config">
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		Set ..http.ContentType = ..#ContentType
+		Set ..http.Server = ..#Server
+		Set ..http.Port = ..#Port
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="BaseUrl">
+<FormalSpec>*tSC:%Status</FormalSpec>
+<Private>1</Private>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK, tBaseUrl = ..Url
+	Try {
+		Set matcher = ##class(%Regex.Matcher).%New(":\w+")
+		Set matcher.Text = ..Url
+	    
+	    While matcher.Locate() {
+		    Set param = $Replace(matcher.Group,":","")
+		    Set tBaseUrl = $Replace(tBaseUrl,":"_param,..Params.GetAt(param))
+		}
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tBaseUrl
+]]></Implementation>
+</Method>
+
+<Method name="Execute">
+<FormalSpec>pMethod:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		Set:..IsConfigured()=0 tSC = $$$ERROR(8006,"Parameters")
+		Throw:$$$ISERR(tSC)
+		$$$THROWONERROR(tSC, ..Config())
+		$$$THROWONERROR(tSC, ..GetCredentials())
+		$$$THROWONERROR(tSC, ..SetParams(pMethod))
+		
+		If pMethod = "get" {
+			$$$THROWONERROR(tSC, ..http.Get(..BaseUrl()))
+		} 
+		ElseIf pMethod = "post" {
+			$$$THROWONERROR(tSC, ..http.Post(..BaseUrl()))
+		} 
+		ElseIf pMethod = "put" {
+			$$$THROWONERROR(tSC, ..http.Put(..BaseUrl()))
+		}
+		
+		$$$THROWONERROR(tSC, ..Response( ..http.HttpResponse))
+		
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="Response">
+<FormalSpec>pResponse:%Net.HttpResponse</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		If ((pResponse'="") && (pResponse.StatusCode > 199)&&(pResponse.StatusCode < 203)) {
+			
+			Set:..#Header tSC = ..ParseHeaderValues(pResponse)
+			
+			Do pResponse.Data.Rewind()
+			If pResponse.Data.Read()'="" {
+				
+				Do pResponse.Data.Rewind()
+				Set tSC = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(pResponse.Data.Read(),,.json,1)
+				Throw:$$$ISERR(tSC)
+				Set ..data = json
+				
+			}
+		} ElseIf ((pResponse'="") && ((pResponse.StatusCode > 399)&&(pResponse.StatusCode < 600)))  {
+			Set tSC = $$$ERROR(5002,pResponse.StatusCode _ " - " _pResponse.ReasonPhrase)
+		} Else {
+			// 6219 Unknown Error
+			Set tSC = $$$ERROR(6219)
+		}
+		
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="ParseHeaderValues">
+<FormalSpec>pResponse:%Net.HttpResponse</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		// get response from header
+		Set header = "", ..header = ##class(%ZEN.proxyObject).%New()
+		For {
+			Set header = pResponse.GetNextHeader(header)
+			Set $Property(..header, header) = pResponse.GetHeader(header)
+			Quit:header=""
+		}
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="SetParams">
+<FormalSpec>pMethod:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try{
+		Set json = ##class(%ZEN.proxyObject).%New(), key = ..Params.Next(""), i = 0
+		
+		While key '= "" {
+			If pMethod = "get" {
+				Do ..http.SetParam(key,..Params.GetAt(key),i)
+			} 
+			Else {
+				Set $Property(json, key) =  ..Params.GetAt(key)
+			}
+			
+			Set key = ..Params.Next(key)
+			Set i = $Increment(i)
+			Set:i>..Params.Count() key = ""
+		}
+		If pMethod '= "get"  {
+			Set tSC = ##class(%ZEN.Auxiliary.jsonProvider).%WriteJSONStreamFromObject(.result,json)
+			Do result.Rewind()
+			$$$THROWONERROR(tSC, ..http.EntityBody.Write(result.Read()))
+		}
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC=tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+</Class>
+</Export>

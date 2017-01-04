@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-32) 2015.2.1 (Build 705U)" ts="2017-01-04 15:54:23">
+<Class name="noodles.v01.viewmodel">
+<Super>noodles.v01.fetch</Super>
+<TimeChanged>64286,62153.431902</TimeChanged>
+<TimeCreated>64285,33682.148195</TimeCreated>
+
+<Parameter name="Base">
+</Parameter>
+
+<Parameter name="Create">
+</Parameter>
+
+<Parameter name="List">
+</Parameter>
+
+<Parameter name="Read">
+<Default>/:Id</Default>
+</Parameter>
+
+<Parameter name="Update">
+<Default>/:Id</Default>
+</Parameter>
+
+<Parameter name="Delete">
+<Default>/:Id</Default>
+</Parameter>
+
+<Method name="CreateData">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		$$$THROWONERROR(tSC, ..Base(..#Create, .tUrl))
+		$$$THROWONERROR(tSC,..Request(tUrl))
+		$$$THROWONERROR(tSC, ..Post())
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="ReadData">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		$$$THROWONERROR(tSC, ..Base(..#Read, .tUrl))
+		$$$THROWONERROR(tSC,..Request(tUrl))
+		$$$THROWONERROR(tSC, ..Get())
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="UpdateData">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		$$$THROWONERROR(tSC, ..Base(..#Update, .tUrl))
+		$$$THROWONERROR(tSC,..Request(tUrl))
+		$$$THROWONERROR(tSC, ..Put())
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="DeleteData">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		$$$THROWONERROR(tSC, ..Base(..#Delete, .tUrl))
+		$$$THROWONERROR(tSC,..Request(tUrl))
+		$$$THROWONERROR(tSC, ..Delete())
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="ListData">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		$$$THROWONERROR(tSC, ..Base(..#List, .tUrl))
+		$$$THROWONERROR(tSC,..Request(tUrl))
+		$$$THROWONERROR(tSC, ..Get())
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="CustomData">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		$$$THROWONERROR(tSC, ..Base("", .tUrl))
+		$$$THROWONERROR(tSC,..Request(tUrl))
+		$$$THROWONERROR(tSC, ..Get())
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="AllData">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	Quit ..ListData()
+]]></Implementation>
+</Method>
+
+<Method name="Base">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pAction:%String="",*tLink:%String</FormalSpec>
+<Private>1</Private>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK, base = ..#Base
+	Try {
+		Set:base="" tSC = $$$ERROR(5655,"Base")
+		Throw:$$$ISERR(tSC)
+		
+		Set:$Extract(base,*,*)="/" base = $Extract(base,1,*-1)
+		Set:$Extract(pAction,1,1)="/" pAction = $Extract(pAction,2,*)
+		Set $List(output,*+1) = base, $List(output,*+1) = pAction
+		Set tLink = $ListToString(output,"/")
+		
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+</Class>
+</Export>
