@@ -1,37 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-32) 2015.2.1 (Build 705U)" ts="2017-01-04 15:54:23">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-32) 2015.2.1 (Build 705U)" ts="2017-01-11 17:24:40">
 <Class name="noodles.v01.viewmodel">
 <Super>noodles.v01.fetch</Super>
-<TimeChanged>64286,62153.431902</TimeChanged>
+<TimeChanged>64294,62654.69467</TimeChanged>
 <TimeCreated>64285,33682.148195</TimeCreated>
 
 <Parameter name="Base">
 </Parameter>
 
-<Parameter name="Create">
-</Parameter>
+<Property name="Base">
+<Type>%String</Type>
+</Property>
 
-<Parameter name="List">
-</Parameter>
+<Property name="Create">
+</Property>
 
-<Parameter name="Read">
-<Default>/:Id</Default>
-</Parameter>
+<Property name="List">
+</Property>
 
-<Parameter name="Update">
-<Default>/:Id</Default>
-</Parameter>
+<Property name="Read">
+<InitialExpression>"/:Id"</InitialExpression>
+</Property>
 
-<Parameter name="Delete">
-<Default>/:Id</Default>
-</Parameter>
+<Property name="Update">
+<InitialExpression>"/:Id"</InitialExpression>
+</Property>
+
+<Property name="Delete">
+<InitialExpression>"/:Id"</InitialExpression>
+</Property>
 
 <Method name="CreateData">
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	Set tSC = $$$OK
 	Try {
-		$$$THROWONERROR(tSC, ..Base(..#Create, .tUrl))
+		$$$THROWONERROR(tSC, ..Base(..Create, .tUrl))
 		$$$THROWONERROR(tSC,..Request(tUrl))
 		$$$THROWONERROR(tSC, ..Post())
 	} Catch tException {
@@ -46,7 +50,7 @@
 <Implementation><![CDATA[
 	Set tSC = $$$OK
 	Try {
-		$$$THROWONERROR(tSC, ..Base(..#Read, .tUrl))
+		$$$THROWONERROR(tSC, ..Base(..Read, .tUrl))
 		$$$THROWONERROR(tSC,..Request(tUrl))
 		$$$THROWONERROR(tSC, ..Get())
 	} Catch tException {
@@ -61,7 +65,7 @@
 <Implementation><![CDATA[
 	Set tSC = $$$OK
 	Try {
-		$$$THROWONERROR(tSC, ..Base(..#Update, .tUrl))
+		$$$THROWONERROR(tSC, ..Base(..Update, .tUrl))
 		$$$THROWONERROR(tSC,..Request(tUrl))
 		$$$THROWONERROR(tSC, ..Put())
 	} Catch tException {
@@ -76,7 +80,7 @@
 <Implementation><![CDATA[
 	Set tSC = $$$OK
 	Try {
-		$$$THROWONERROR(tSC, ..Base(..#Delete, .tUrl))
+		$$$THROWONERROR(tSC, ..Base(..Delete, .tUrl))
 		$$$THROWONERROR(tSC,..Request(tUrl))
 		$$$THROWONERROR(tSC, ..Delete())
 	} Catch tException {
@@ -91,7 +95,7 @@
 <Implementation><![CDATA[
 	Set tSC = $$$OK
 	Try {
-		$$$THROWONERROR(tSC, ..Base(..#List, .tUrl))
+		$$$THROWONERROR(tSC, ..Base(..List, .tUrl))
 		$$$THROWONERROR(tSC,..Request(tUrl))
 		$$$THROWONERROR(tSC, ..Get())
 	} Catch tException {
@@ -123,17 +127,18 @@
 </Method>
 
 <Method name="Base">
-<ClassMethod>1</ClassMethod>
 <FormalSpec>pAction:%String="",*tLink:%String</FormalSpec>
 <Private>1</Private>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	Set tSC = $$$OK, base = ..#Base
+	Set tSC = $$$OK
 	Try {
-		Set:base="" tSC = $$$ERROR(5655,"Base")
+		Set baseurl = ..Base
+		Set:baseurl="" baseurl = ..#Base
+		Set:baseurl="" tSC = $$$ERROR(5655,"Base")
 		Throw:$$$ISERR(tSC)
 		
-		Set:$Extract(base,*,*)="/" base = $Extract(base,1,*-1)
+		Set:$Extract(baseurl,*,*)="/" base = $Extract(baseurl,1,*-1)
 		Set:$Extract(pAction,1,1)="/" pAction = $Extract(pAction,2,*)
 		Set $List(output,*+1) = base, $List(output,*+1) = pAction
 		Set tLink = $ListToString(output,"/")
