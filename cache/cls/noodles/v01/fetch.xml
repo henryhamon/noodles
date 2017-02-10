@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="Cache" version="25" zv="Cache for Windows (x86-32) 2015.2.1 (Build 705U)" ts="2017-01-04 15:53:09">
+<Export generator="Cache" version="25" zv="Cache for Windows (x86-32) 2015.2.1 (Build 705U)" ts="2017-02-10 10:19:34">
 <Class name="noodles.v01.fetch">
 <Super>%RegisteredObject</Super>
-<TimeChanged>64287,51903.625749</TimeChanged>
+<TimeChanged>64324,37100.999542</TimeChanged>
 <TimeCreated>64285,33636.222919</TimeCreated>
 
 <Parameter name="Server">
@@ -226,14 +226,12 @@
 			
 			Set:..#Header tSC = ..ParseHeaderValues(pResponse)
 			
-			Do pResponse.Data.Rewind()
-			If pResponse.Data.Read()'="" {
-				
-				Do pResponse.Data.Rewind()
-				Set tSC = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(pResponse.Data.Read(),,.json,1)
+			$$$THROWONERROR(tSC, ..ResponseToString(pResponse, .tData))
+			
+			If tData'="" {
+				Set tSC = ##class(%ZEN.Auxiliary.jsonProvider).%ConvertJSONToObject(tData,,.json,1)
 				Throw:$$$ISERR(tSC)
 				Set ..data = json
-				
 			}
 		} ElseIf ((pResponse'="") && ((pResponse.StatusCode > 399)&&(pResponse.StatusCode < 600)))  {
 			Set tSC = $$$ERROR(5002,pResponse.StatusCode _ " - " _pResponse.ReasonPhrase)
@@ -298,6 +296,25 @@
 		}
 	} Catch tException {
 		Set:$$$ISOK(tSC) tSC=tException.AsStatus()
+	}
+	Quit tSC
+]]></Implementation>
+</Method>
+
+<Method name="ResponseToString">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>response:%Net.HttpResponse,*pString:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set tSC = $$$OK
+	Try {
+		Set pString = ""
+		$$$THROWONERROR(tSC, response.Data.Rewind())
+		While 'response.Data.AtEnd {
+			Set pString = pString _ response.Data.Read() 
+		}
+	} Catch tException {
+		Set:$$$ISOK(tSC) tSC = tException.AsStatus()
 	}
 	Quit tSC
 ]]></Implementation>
